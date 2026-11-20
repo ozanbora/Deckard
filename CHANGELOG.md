@@ -2,6 +2,10 @@
 
 What changed in each release, for players (also posted on Patreon). Newest first.
 
+## 1.0.1
+
+- The sign-in window and About link the Terms of Use and the Privacy Policy on synica.nl.
+
 ## 1.0.0 (20 November 2026)
 
 The first public release. Deckard is now open source under the GNU AGPL v3.0, the trade server included; About

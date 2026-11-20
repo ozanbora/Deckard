@@ -30,7 +30,10 @@ internal static class AboutDialog
         license.Inlines.Add(Link("GNU Affero General Public License v3.0", "https://www.gnu.org/licenses/agpl-3.0.html"));
         license.Inlines.Add(new Run { Text = ", without any warranty. " });
         license.Inlines.Add(Link("Source code", SourceUrl));
-        license.Inlines.Add(new Run { Text = " of the app and its trade server." });
+        license.Inlines.Add(new Run { Text = " of the app and its trade server. " });
+        license.Inlines.Add(Link("Terms of Use", TermsUrl));
+        license.Inlines.Add(new Run { Text = " · " });
+        license.Inlines.Add(Link("Privacy Policy", PrivacyUrl));
         body.Children.Add(license);
 
         body.Children.Add(Heading("Fonts"));
@@ -95,6 +98,8 @@ internal static class AboutDialog
     };
 
     public const string SourceUrl = "https://github.com/ozanbora/Deckard";
+    public const string TermsUrl = "https://www.synica.nl/deckard-terms-of-use";
+    public const string PrivacyUrl = "https://www.synica.nl/deckard-privacy-policy";
 
     private static Hyperlink Link(string text, string url)
     {

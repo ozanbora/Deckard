@@ -42,7 +42,7 @@ only gets your BattleTag and an account number from Battle.net, never your passw
 
 ## What does Deckard know about me?
 
-See the [privacy policy](https://synica.nl). In short: your BattleTag, your listings, offers and trade records, your
+See the [privacy policy](https://www.synica.nl/deckard-privacy-policy) and the [terms of use](https://www.synica.nl/deckard-terms-of-use). In short: your BattleTag, your listings, offers and trade records, your
 settings, and, only if you turn them on, whether you're in game, your zone for an accepted trade partner, your Patreon
 link, and anonymous usage data.
 

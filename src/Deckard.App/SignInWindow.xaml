@@ -53,6 +53,12 @@
 
             <TextBlock TextWrapping="Wrap" TextAlignment="Center" FontSize="12" Foreground="{ThemeResource TextFillColorTertiaryBrush}"
                        Text="Deckard reads the game from the screen only. It never touches the game or your Battle.net password." />
+            <TextBlock TextWrapping="Wrap" TextAlignment="Center" FontSize="12" Foreground="{ThemeResource TextFillColorTertiaryBrush}">
+                <Run Text="By signing in you agree to the" />
+                <Hyperlink NavigateUri="https://www.synica.nl/deckard-terms-of-use">Terms of Use</Hyperlink><Run Text=", and our" />
+                <Hyperlink NavigateUri="https://www.synica.nl/deckard-privacy-policy">Privacy Policy</Hyperlink>
+                <Run Text="says what Deckard keeps." />
+            </TextBlock>
         </StackPanel>
     </Grid>
 </Window>

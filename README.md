@@ -15,9 +15,10 @@ advice next to it:
 **Download:** the signed installer is on the [Releases](https://github.com/ozanbora/Deckard/releases) page. Requires
 Windows 11 (x64); run Diablo IV in **borderless windowed** mode. Installed copies update themselves.
 
-**Support Deckard:** patrons on [Patreon](https://www.patreon.com/c/deckard_companion) keep more saved searches and
-builds, sort the stash against every build, can get early builds and their name in the credits. It never gives an
-advantage in the market.
+**Support Deckard** on [GitHub Sponsors](https://github.com/sponsors/ozanbora) or
+[Patreon](https://www.patreon.com/c/deckard_companion). Patrons on Patreon keep more saved searches and builds, sort
+the stash against every build, can get early builds and their name in the credits. It never gives an advantage in the
+market.
 
 ## Fair-play rules
 

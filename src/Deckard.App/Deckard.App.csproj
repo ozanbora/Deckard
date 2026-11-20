@@ -1,0 +1,48 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows10.0.22621.0</TargetFramework>
+    <SupportedOSPlatformVersion>10.0.22000.0</SupportedOSPlatformVersion>
+    <RootNamespace>Deckard.App</RootNamespace>
+    <AssemblyName>Deckard</AssemblyName>
+    <UseWinUI>true</UseWinUI>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!-- Unpackaged and self-contained: runs from the build output without MSIX or a Windows App SDK runtime install. -->
+    <WindowsPackageType>None</WindowsPackageType>
+    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+    <!-- Builds the app's .pri resources (the compiled XAML) into dotnet publish's output too; without it a published
+         Deckard crashes at start. The app stays unpackaged. -->
+    <EnableMsixTooling>true</EnableMsixTooling>
+    <Platforms>x64;ARM64</Platforms>
+    <RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers>
+    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">win-x64</RuntimeIdentifier>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- Drawn by tools/icon/make_icon.py; also the windows' and the tray's icon. -->
+    <ApplicationIcon>Assets\Deckard.ico</ApplicationIcon>
+    <!-- Program.cs runs Velopack's hooks before WinUI starts. -->
+    <DefineConstants>$(DefineConstants);DISABLE_XAML_GENERATED_MAIN</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="Assets\Fonts\**" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Assets\Deckard.ico" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!-- A release build names its server: dotnet publish -p:DeckardServer=https://... (tools/installer/pack.ps1). -->
+  <ItemGroup Condition="'$(DeckardServer)' != ''">
+    <AssemblyMetadata Include="DeckardServer" Value="$(DeckardServer)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Deckard.Capture\Deckard.Capture.csproj" />
+    <ProjectReference Include="..\Deckard.Perception\Deckard.Perception.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.2705" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.5.1" />
+    <PackageReference Include="Velopack" Version="1.2.161" />
+  </ItemGroup>
+
+</Project>

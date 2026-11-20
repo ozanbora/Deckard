@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window
+    x:Class="Deckard.App.SignInWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Deckard: sign in">
+    <Grid x:Name="Root" Background="{ThemeResource AppBackgroundBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="40" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <!-- Title bar: drag area only; the window's close button sits to the right. -->
+        <Border x:Name="DragArea" Background="Transparent" />
+
+        <StackPanel Grid.Row="1" MaxWidth="380" Margin="32,0,32,32" VerticalAlignment="Center" Spacing="24">
+            <StackPanel HorizontalAlignment="Center" Spacing="6">
+                <TextBlock Text="✠" FontSize="44" HorizontalAlignment="Center" Foreground="{ThemeResource AccentFillColorDefaultBrush}" />
+                <TextBlock Text="DECKARD" Style="{StaticResource DisplayTextStyle}" FontSize="34" HorizontalAlignment="Center" />
+                <TextBlock Text="Diablo IV build assistant" FontFamily="{StaticResource CardFontItalic}" FontSize="15"
+                           Foreground="{ThemeResource TextFillColorTertiaryBrush}" HorizontalAlignment="Center" />
+            </StackPanel>
+
+            <!-- Framed like an item tooltip: the sign-in itself. -->
+            <Border Background="{ThemeResource SurfaceBrush}" BorderBrush="{ThemeResource SurfaceBorderBrush}" BorderThickness="1"
+                    CornerRadius="3" Padding="22,20">
+                <StackPanel Spacing="16">
+                    <TextBlock x:Name="Message" TextWrapping="Wrap" Foreground="{ThemeResource SubtleTextBrush}" />
+                    <Button x:Name="BattleNetButton" Content="Sign in with Battle.net" Style="{StaticResource AccentButtonStyle}"
+                            HorizontalAlignment="Stretch" Padding="12,10" Click="OnBattleNetClick" />
+                    <StackPanel x:Name="Waiting" Orientation="Horizontal" Spacing="10" Visibility="Collapsed">
+                        <ProgressRing Width="18" Height="18" IsActive="True" />
+                        <TextBlock Text="Waiting for Battle.net in your browser…" VerticalAlignment="Center" FontSize="14"
+                                   Foreground="{ThemeResource SubtleTextBrush}" />
+                        <HyperlinkButton Content="Cancel" Padding="4,0" Click="OnCancelClick" />
+                    </StackPanel>
+                    <TextBlock x:Name="Error" TextWrapping="Wrap" Visibility="Collapsed" />
+
+                    <!-- Development sign-in: only against a server on this machine. -->
+                    <StackPanel x:Name="DevPanel" Spacing="8" Visibility="Collapsed">
+                        <Rectangle Height="1" Fill="{ThemeResource SurfaceBorderBrush}" Margin="0,4" />
+                        <TextBlock Text="Development sign-in (local server only)" FontSize="13" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                        <Grid ColumnSpacing="8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="DevTag" PlaceholderText="Name#1234" AutomationProperties.Name="Development BattleTag" KeyDown="OnDevKeyDown" />
+                            <Button x:Name="DevButton" Grid.Column="1" Content="Sign in" Click="OnDevClick" />
+                        </Grid>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <TextBlock TextWrapping="Wrap" TextAlignment="Center" FontSize="12" Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                       Text="Deckard reads the game from the screen only. It never touches the game or your Battle.net password." />
+        </StackPanel>
+    </Grid>
+</Window>

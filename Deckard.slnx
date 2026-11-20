@@ -1,0 +1,17 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Deckard.App/Deckard.App.csproj">
+      <Platform Project="x64" />
+    </Project>
+    <Project Path="src/Deckard.Capture/Deckard.Capture.csproj" />
+    <Project Path="src/Deckard.Cli/Deckard.Cli.csproj" />
+    <Project Path="src/Deckard.Core/Deckard.Core.csproj" />
+    <Project Path="src/Deckard.Perception/Deckard.Perception.csproj" />
+    <Project Path="src/Deckard.Trade.Api/Deckard.Trade.Api.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Deckard.Core.Tests/Deckard.Core.Tests.csproj" />
+    <Project Path="tests/Deckard.Perception.Tests/Deckard.Perception.Tests.csproj" />
+    <Project Path="tests/Deckard.Trade.Tests/Deckard.Trade.Tests.csproj" />
+  </Folder>
+</Solution>

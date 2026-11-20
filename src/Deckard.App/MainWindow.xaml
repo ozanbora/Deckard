@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window
+    x:Class="Deckard.App.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Deckard.App"
+    Title="Deckard">
+    <Grid x:Name="Root" Background="{ThemeResource AppBackgroundBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Title bar: the app's name, the reader status and About; the window's caption buttons sit to the right. -->
+        <Grid Height="48" Padding="18,0,148,0" ColumnSpacing="16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <!-- Drag area: everything but the account, guide and About buttons, which must keep taking clicks. -->
+            <Border x:Name="DragArea" Grid.ColumnSpan="2" Margin="-18,0,0,0" Background="Transparent" />
+            <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                <TextBlock Text="✠" FontSize="18" Foreground="{ThemeResource AccentFillColorDefaultBrush}" VerticalAlignment="Center" />
+                <TextBlock Text="DECKARD" Style="{StaticResource DisplayTextStyle}" FontSize="18" VerticalAlignment="Center" />
+            </StackPanel>
+            <Border x:Name="StatusPill" Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center" CornerRadius="3" Padding="10,3"
+                    Background="{ThemeResource StatusPillBrush}" BorderBrush="{ThemeResource SurfaceBorderBrush}" BorderThickness="1">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Ellipse x:Name="StatusDot" Width="7" Height="7" VerticalAlignment="Center" Fill="{ThemeResource SubtleTextBrush}" />
+                    <TextBlock x:Name="StatusText" Text="Starting…" FontSize="13" Foreground="{ThemeResource SubtleTextBrush}"
+                               TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                </StackPanel>
+            </Border>
+            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                <!-- The signed-in player, and Sign out. -->
+                <Button x:Name="AccountButton" ToolTipService.ToolTip="Account" AutomationProperties.Name="Account" Padding="9,6" Background="Transparent" BorderThickness="0">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon Glyph="&#xE77B;" FontSize="16" />
+                        <TextBlock x:Name="AccountName" FontSize="13" Foreground="{ThemeResource SubtleTextBrush}" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <Button.Flyout>
+                        <MenuFlyout Placement="BottomEdgeAlignedRight">
+                            <MenuFlyoutItem Text="Sign out" Click="OnSignOutClick">
+                                <MenuFlyoutItem.Icon><FontIcon Glyph="&#xF3B1;" /></MenuFlyoutItem.Icon>
+                            </MenuFlyoutItem>
+                        </MenuFlyout>
+                    </Button.Flyout>
+                </Button>
+                <Button Click="OnFeedbackClick" ToolTipService.ToolTip="Send feedback: a bug report or a feature request" AutomationProperties.Name="Send feedback" Padding="9" Background="Transparent" BorderThickness="0">
+                    <FontIcon Glyph="&#xED15;" FontSize="16" />
+                </Button>
+                <Button x:Name="HelpButton" Click="OnGuideClick" ToolTipService.ToolTip="Guide" AutomationProperties.Name="Guide" Padding="9" Background="Transparent" BorderThickness="0">
+                    <FontIcon Glyph="&#xE897;" FontSize="16" />
+                </Button>
+                <Button Click="OnAboutClick" ToolTipService.ToolTip="About and credits" AutomationProperties.Name="About and credits" Padding="9" Background="Transparent" BorderThickness="0">
+                    <FontIcon Glyph="&#xE946;" FontSize="16" />
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <NavigationView x:Name="Nav" Grid.Row="1" PaneDisplayMode="Left" OpenPaneLength="240" CompactPaneLength="48"
+                        IsSettingsVisible="True" IsBackButtonVisible="Collapsed" SelectionChanged="OnNavChanged">
+            <!-- The rail and pages sit on the app background, not on Fluent's gray layers. -->
+            <NavigationView.Resources>
+                <SolidColorBrush x:Key="NavigationViewDefaultPaneBackground" Color="Transparent" />
+                <SolidColorBrush x:Key="NavigationViewExpandedPaneBackground" Color="Transparent" />
+                <SolidColorBrush x:Key="NavigationViewContentBackground" Color="Transparent" />
+                <SolidColorBrush x:Key="NavigationViewContentGridBorderBrush" Color="Transparent" />
+            </NavigationView.Resources>
+            <NavigationView.MenuItems>
+                <NavigationViewItem x:Name="NavItems" Content="Items" Tag="Items" IsSelected="True">
+                    <NavigationViewItem.Icon><FontIcon Glyph="&#xE7B8;" /></NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem x:Name="NavTalisman" Content="Talisman" Tag="Talisman">
+                    <NavigationViewItem.Icon><FontIcon Glyph="&#xE734;" /></NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem x:Name="NavMercenaries" Content="Mercenaries" Tag="Mercenaries">
+                    <NavigationViewItem.Icon><FontIcon Glyph="&#xE716;" /></NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem x:Name="NavTree" Content="Skill tree" Tag="Tree">
+                    <NavigationViewItem.Icon><FontIcon Glyph="&#xE945;" /></NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem x:Name="NavParagon" Content="Paragon" Tag="Paragon">
+                    <NavigationViewItem.Icon><FontIcon Glyph="&#xE80A;" /></NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem x:Name="NavStash" Content="Stash" Tag="Stash">
+                    <NavigationViewItem.Icon><FontIcon Glyph="&#xE8F1;" /></NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItemHeader Content="Trade" />
+                <NavigationViewItem x:Name="RealmHeader" SelectsOnInvoked="False" ToolTipService.ToolTip="Trade realm (HC: Hardcore)">
+                    <NavigationViewItem.Icon><FontIcon Glyph="&#xE909;" /></NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem x:Name="NavTrade" Content="Search" Tag="Trade:Search">
+                    <NavigationViewItem.Icon><FontIcon Glyph="&#xE721;" /></NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem x:Name="NavListings" Content="My listings" Tag="Trade:Listings">
+                    <NavigationViewItem.Icon><FontIcon Glyph="&#xE8EC;" /></NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem x:Name="NavOffers" Content="Offers" Tag="Trade:Offers">
+                    <NavigationViewItem.Icon><FontIcon Glyph="&#xE8BD;" /></NavigationViewItem.Icon>
+                    <NavigationViewItem.InfoBadge><InfoBadge x:Name="OffersBadge" Visibility="Collapsed" /></NavigationViewItem.InfoBadge>
+                </NavigationViewItem>
+                <NavigationViewItem x:Name="NavBuyOrders" Content="Buy orders" Tag="Trade:BuyOrders">
+                    <NavigationViewItem.Icon><FontIcon Glyph="&#xE7BF;" /></NavigationViewItem.Icon>
+                </NavigationViewItem>
+            </NavigationView.MenuItems>
+
+            <Grid Padding="4,0,18,18" RowSpacing="12">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <StackPanel Spacing="12">
+                    <!-- An update downloaded in the background, applied by restarting (or on exit). -->
+                    <InfoBar x:Name="UpdateBar" Severity="Informational" IsClosable="True" Title="Update ready">
+                        <InfoBar.ActionButton>
+                            <Button Content="Restart now" Click="OnRestartForUpdateClick" />
+                        </InfoBar.ActionButton>
+                    </InfoBar>
+                    <!-- The build: a link box until one loads, then its name, class, variant and the account's other builds. -->
+                    <Border x:Name="BuildPanel" Background="{ThemeResource SurfaceBrush}" BorderBrush="{ThemeResource SurfaceBorderBrush}" BorderThickness="1"
+                            CornerRadius="3" Padding="14,10">
+                        <Grid>
+                            <Grid x:Name="BuildInput" ColumnSpacing="10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="GuideBox" PlaceholderText="Paste a build link from maxroll, d4builds or Icy Veins' planner" KeyDown="OnGuideKeyDown" />
+                                <ProgressRing x:Name="InputLoading" Grid.Column="1" Width="20" Height="20" IsActive="False" />
+                                <Button x:Name="LoadButton" Grid.Column="2" Content="Import" IsEnabled="False" Click="OnLoadClick" Style="{StaticResource AccentButtonStyle}" />
+                                <!-- Back to the loaded build, when adding another one. -->
+                                <Button x:Name="CancelAddButton" Grid.Column="3" Content="Cancel" Visibility="Collapsed" Click="OnCancelAddClick" />
+                            </Grid>
+                            <Grid x:Name="BuildSummary" ColumnSpacing="12" Visibility="Collapsed">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel VerticalAlignment="Center">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <TextBlock x:Name="BuildName" Style="{StaticResource DisplayTextStyle}" FontSize="18" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                                        <!-- The build's own page: the guide or planner it was imported from. -->
+                                        <Button x:Name="OpenBuildButton" Click="OnOpenBuild" Padding="5" VerticalAlignment="Center" Background="Transparent" BorderThickness="0"
+                                                AutomationProperties.Name="Open the build's page">
+                                            <FontIcon Glyph="&#xE8A7;" FontSize="13" />
+                                        </Button>
+                                    </StackPanel>
+                                    <TextBlock x:Name="BuildInfo" FontSize="13" Foreground="{ThemeResource SubtleTextBrush}" TextTrimming="CharacterEllipsis" />
+                                </StackPanel>
+                                <ProgressRing x:Name="SummaryLoading" Grid.Column="1" Width="20" Height="20" IsActive="False" />
+                                <ComboBox x:Name="VariantBox" Grid.Column="2" MinWidth="150" VerticalAlignment="Center" SelectionChanged="OnVariantChanged" />
+                                <DropDownButton x:Name="BuildsButton" Grid.Column="3" Content="Builds" VerticalAlignment="Center" AutomationProperties.Name="Builds">
+                                    <DropDownButton.Flyout>
+                                        <MenuFlyout x:Name="BuildsMenu" Placement="BottomEdgeAlignedRight" Opening="OnBuildsMenuOpening" />
+                                    </DropDownButton.Flyout>
+                                </DropDownButton>
+                            </Grid>
+                        </Grid>
+                    </Border>
+                </StackPanel>
+
+                <Grid Grid.Row="1">
+                    <Border x:Name="ItemsPage" Background="{ThemeResource SurfaceBrush}" BorderBrush="{ThemeResource SurfaceBorderBrush}" BorderThickness="1" CornerRadius="3">
+                        <Grid>
+                            <!-- The items on the doll (named under each picture), and beside it the runes and gems, gear progress, skills and how to play. -->
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="2*" />
+                                <ColumnDefinition Width="*" MaxWidth="680" />
+                            </Grid.ColumnDefinitions>
+                            <local:InventoryView x:Name="Inventory" />
+                            <Border Grid.Column="1" BorderBrush="{ThemeResource SurfaceBorderBrush}" BorderThickness="1,0,0,0">
+                                <local:BuildSheetView x:Name="Sheet" />
+                            </Border>
+                            <!-- Until the season's data has downloaded: nothing else on the page works yet. -->
+                            <StackPanel x:Name="DataLoading" Grid.ColumnSpan="2" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
+                                <ProgressRing IsActive="True" Width="32" Height="32" />
+                                <TextBlock Text="Loading the game data…" FontFamily="{StaticResource CardFontItalic}" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                            </StackPanel>
+                            <TextBlock x:Name="BuildEmptyText" Grid.ColumnSpan="2" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center" MaxWidth="360"
+                                       FontFamily="{StaticResource CardFontItalic}" Foreground="{ThemeResource TextFillColorTertiaryBrush}" TextWrapping="Wrap"
+                                       Text="Load a build to see its items and how well each item you read fits." />
+                        </Grid>
+                    </Border>
+                    <Border x:Name="TalismanPage" Visibility="Collapsed" Background="{ThemeResource SurfaceBrush}" BorderBrush="{ThemeResource SurfaceBorderBrush}" BorderThickness="1" CornerRadius="3">
+                        <local:TalismanView x:Name="Talisman" />
+                    </Border>
+                    <Border x:Name="MercenariesPage" Visibility="Collapsed" Background="{ThemeResource SurfaceBrush}" BorderBrush="{ThemeResource SurfaceBorderBrush}" BorderThickness="1" CornerRadius="3">
+                        <local:MercenaryView x:Name="Mercenaries" />
+                    </Border>
+                    <Border x:Name="TreePage" Visibility="Collapsed" BorderBrush="{ThemeResource SurfaceBorderBrush}" BorderThickness="1" CornerRadius="3">
+                        <Grid>
+                            <local:SkillTreeView x:Name="TreeView" />
+                            <TextBlock x:Name="TreeEmptyText" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center" MaxWidth="360"
+                                       FontFamily="{StaticResource CardFontItalic}" Foreground="{ThemeResource TextFillColorTertiaryBrush}" TextWrapping="Wrap" IsHitTestVisible="False" />
+                            <!-- Editing: the player's own points, kept per account and build (skill-edits.json). -->
+                            <StackPanel x:Name="TreeEditPanel" Visibility="Collapsed" Margin="14" Spacing="6" MaxWidth="300"
+                                        HorizontalAlignment="Right" VerticalAlignment="Top" Padding="12,10" CornerRadius="3"
+                                        Background="#E00E0D0C" BorderBrush="{ThemeResource SurfaceBorderBrush}" BorderThickness="1">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <ToggleButton x:Name="TreeEditButton" Content="Edit points" Click="OnTreeEditClick" />
+                                    <Button x:Name="TreeResetButton" Content="Reset to guide" Visibility="Collapsed" Click="OnTreeResetClick" />
+                                </StackPanel>
+                                <TextBlock x:Name="TreeEditInfo" TextWrapping="Wrap" FontSize="13" Foreground="{ThemeResource SubtleTextBrush}" />
+                            </StackPanel>
+                            <!-- Leveling: the build's skill points step by step; green marks what the chosen step adds. -->
+                            <StackPanel x:Name="TreeStepPanel" Visibility="Collapsed" Margin="14" Spacing="6" MaxWidth="420"
+                                        HorizontalAlignment="Left" VerticalAlignment="Top" Padding="12,10" CornerRadius="3"
+                                        Background="#E00E0D0C" BorderBrush="{ThemeResource SurfaceBorderBrush}" BorderThickness="1">
+                                <ComboBox x:Name="TreeStepBox" Header="Leveling step" MinWidth="260" SelectionChanged="OnTreeStepChanged" />
+                                <TextBlock x:Name="TreeStepAdds" TextWrapping="Wrap" FontSize="13" Foreground="{ThemeResource SubtleTextBrush}" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                    <Border x:Name="ParagonPage" Visibility="Collapsed" BorderBrush="{ThemeResource SurfaceBorderBrush}" BorderThickness="1" CornerRadius="3">
+                        <Grid>
+                            <local:ParagonView x:Name="ParagonBoards" />
+                            <StackPanel x:Name="ParagonStepPanel" Visibility="Collapsed" Margin="14" Padding="12,10" CornerRadius="3"
+                                        HorizontalAlignment="Left" VerticalAlignment="Top"
+                                        Background="#E00E0D0C" BorderBrush="{ThemeResource SurfaceBorderBrush}" BorderThickness="1">
+                                <ComboBox x:Name="ParagonStepBox" Header="Paragon step" MinWidth="260" SelectionChanged="OnParagonStepChanged" />
+                                <TextBlock x:Name="ParagonChecklist" Margin="0,8,0,0" MaxWidth="420" TextWrapping="Wrap" FontSize="13"
+                                           Foreground="{ThemeResource SubtleTextBrush}" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                    <Border x:Name="StashPage" Visibility="Collapsed" Background="{ThemeResource SurfaceBrush}" BorderBrush="{ThemeResource SurfaceBorderBrush}" BorderThickness="1" CornerRadius="3">
+                        <local:StashView x:Name="Stash" />
+                    </Border>
+                    <Border x:Name="TradePage" Visibility="Collapsed" BorderBrush="{ThemeResource SurfaceBorderBrush}" BorderThickness="1" CornerRadius="3">
+                        <local:TradeView x:Name="Trade" />
+                    </Border>
+                    <Border x:Name="SettingsPage" Visibility="Collapsed" Background="{ThemeResource SurfaceBrush}" BorderBrush="{ThemeResource SurfaceBorderBrush}" BorderThickness="1" CornerRadius="3">
+                        <local:SettingsView x:Name="SettingsPanel" />
+                    </Border>
+                </Grid>
+            </Grid>
+        </NavigationView>
+    </Grid>
+</Window>

@@ -126,8 +126,14 @@ CPU and response time and the database's CPU and connections (Monitoring > Metri
 
 Each is a setting (the plan's SKU, the server's compute tier), in the portal or `main.bicep`; nothing in the code changes.
 
+**Alerts.** The `deckard-ops` action group mails the owner when one of these fires (Monitoring > Alerts): the plan's CPU
+above 70% or the average response above 2 s for 15 minutes, more than 20 server errors in 15 minutes, the database's
+CPU above 80%, or its connections above 40. They're the signal to move up a tier.
+
 **Then out.** The server runs as several instances behind App Service's load balancer (Scale out: a fixed count, or
-autoscale on CPU, on a Premium plan). What makes that safe:
+autoscale, which needs Standard or Premium; Basic can't). Each instance keeps at most 15 database connections
+(`Maximum Pool Size=15` in the connection string), so three instances stay under a Burstable B1ms database's limit of
+about 50; raise it with the database tier. What makes that safe:
 
 - **Sign-ins in progress** are in the database (`PendingSignIns`, the `pending_sign_ins` table), not in one instance's
   memory: Battle.net's callback and the app's exchange may reach another instance than the one that started the

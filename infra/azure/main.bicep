@@ -141,7 +141,7 @@ resource app 'Microsoft.Web/sites@2023-12-01' = {
         {
           name: 'Trade'
           type: 'PostgreSQL'
-          connectionString: 'Host=${postgres.properties.fullyQualifiedDomainName};Database=deckard;Username=${dbAdmin};Password=${dbPassword};SSL Mode=Require'
+          connectionString: 'Host=${postgres.properties.fullyQualifiedDomainName};Database=deckard;Username=${dbAdmin};Password=${dbPassword};SSL Mode=Require;Maximum Pool Size=15'
         }
       ]
     }

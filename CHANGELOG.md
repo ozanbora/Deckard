@@ -4,8 +4,9 @@ What changed in each release, for players (also posted on Patreon). Newest first
 
 ## Unreleased
 
-- Settings > Overlay can turn the item card off. Deckard still reads items (runes, worn gear, the stash), it just
-  shows no card over the game.
+- Settings > Overlay: choose where the item card shows. Over the game on the key (as before), in a Deckard window of
+  its own that always shows the last item read (handy on a second screen), or not at all. Deckard reads items either
+  way: runes, worn gear and the stash keep working.
 
 ## 1.0.1
 

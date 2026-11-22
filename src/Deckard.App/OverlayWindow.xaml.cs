@@ -17,7 +17,9 @@ namespace Deckard.App;
 /// the bottom. Our own topmost window, never a hook into the game: never activated (the game keeps focus), hidden
 /// from the taskbar and Alt+Tab. It takes the mouse so the card can be dragged and closed; it sits at the game
 /// window's top-left until dragged, then keeps its place relative to the game. Needs the game in borderless windowed
-/// mode; nothing draws over exclusive fullscreen.
+/// mode; nothing draws over exclusive fullscreen. Or, if the player chooses (<see cref="AppSettings.ItemCard"/>), an
+/// ordinary Deckard window: title bar, taskbar, not topmost, its own place (e.g. a second screen), always showing the last
+/// item read; it never takes the focus from the game when an item comes in.
 /// </summary>
 public sealed partial class OverlayWindow : Window
 {
@@ -33,6 +35,8 @@ public sealed partial class OverlayWindow : Window
     private (ItemTooltip Item, ItemComparison? Fit)? _last;     // the card's item
     private PointInt32? _offset;                                // where the user dragged the card, from the game's client origin
     private (PointInt32 Cursor, PointInt32 Window)? _drag;
+    private readonly OverlappedPresenter _presenter;
+    private bool _windowMode, _windowPlaced, _shuttingDown;
 
     /// <summary>The player asked to list the card's item: the Trade tab's sell preview already holds it (the last item read).</summary>
     public event Action? ListRequested;
@@ -45,24 +49,36 @@ public sealed partial class OverlayWindow : Window
         _visibility = visibility;
         _feed = feed;
         InitializeComponent();
-        var presenter = OverlappedPresenter.Create();
-        presenter.IsAlwaysOnTop = true;
-        presenter.IsResizable = false;
-        presenter.IsMaximizable = false;
-        presenter.IsMinimizable = false;
-        presenter.SetBorderAndTitleBar(false, false);
-        AppWindow.SetPresenter(presenter);
-        AppWindow.IsShownInSwitchers = false;
+        _presenter = OverlappedPresenter.Create();
+        _presenter.IsResizable = false;
+        _presenter.IsMaximizable = false;
+        _presenter.IsMinimizable = false;
+        AppWindow.SetPresenter(_presenter);
+        Title = "Deckard item card";
 
         _hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
         Native.MakeOverlay(_hwnd);
-        visibility.Card = _hwnd;
+        _windowMode = AppSettings.Shared.ItemCard != CardPlace.Window; // the opposite, so ApplyMode sets the window up
+        ApplyMode();
+        AppSettings.Shared.Changed += () => DispatcherQueue.TryEnqueue(() =>
+        {
+            ApplyMode();
+            Place();
+        });
+        // The window's own close button hides the card until the next item; quitting Deckard closes it for good.
+        AppWindow.Closing += (_, e) =>
+        {
+            if (_shuttingDown)
+                return;
+            e.Cancel = true;
+            CloseCard();
+        };
 
         feed.Ready += catalog => DispatcherQueue.TryEnqueue(() => _catalog = catalog);
         feed.GameWindowChanged += hwnd => DispatcherQueue.TryEnqueue(() =>
         {
             _game = hwnd;
-            if (hwnd == 0)
+            if (hwnd == 0 && !_windowMode)
                 AppWindow.Hide();
         });
         feed.ItemRead += (item, fit) => DispatcherQueue.TryEnqueue(() =>
@@ -84,8 +100,8 @@ public sealed partial class OverlayWindow : Window
         // second or two; till then the card showed the previous item over the new one).
         feed.TooltipReplaced += () => DispatcherQueue.TryEnqueue(() =>
         {
-            if (_drag is not null || _editing || Native.GetForegroundWindow() == _hwnd)
-                return; // the player is on the card
+            if (_windowMode || _drag is not null || _editing || Native.GetForegroundWindow() == _hwnd)
+                return; // the player is on the card, or it's in its own window, which keeps the last item
             _hasItem = false;
             if (AppWindow.IsVisible)
                 AppWindow.Hide();
@@ -107,8 +123,9 @@ public sealed partial class OverlayWindow : Window
         visibility.Changed += _ => Place();
         AppSettings.Shared.CardPositionReset += () =>
         {
-            // Back beside the game's tooltip, and shown again if it was closed (a stuck drag would block placing it).
-            (_offset, _drag, _closed) = (null, null, false);
+            // Back beside the game's tooltip (or, in its own window, back to its first place), and shown again if it was
+            // closed (a stuck drag would block placing it).
+            (_offset, _drag, _closed, _windowPlaced) = (null, null, false, false);
             Place();
         };
 
@@ -187,7 +204,9 @@ public sealed partial class OverlayWindow : Window
     {
         if (_drag is not null)
             return;
-        if (!_visibility.IsVisible || _closed || _overBuildScreen || !AppSettings.Shared.ShowItemCard)
+        var hidden = AppSettings.Shared.ItemCard == CardPlace.Off || _closed
+            || !_windowMode && (!_visibility.IsVisible || _overBuildScreen);
+        if (hidden)
         {
             if (_editing)
             {
@@ -199,6 +218,11 @@ public sealed partial class OverlayWindow : Window
             GiveFocusBack();
             if (AppWindow.IsVisible)
                 AppWindow.Hide();
+            return;
+        }
+        if (_windowMode)
+        {
+            PlaceWindow();
             return;
         }
         if (_game == 0 || !_hasItem || !Native.TryGetClientOrigin(_game, out var x, out var y))
@@ -220,11 +244,67 @@ public sealed partial class OverlayWindow : Window
         }
     }
 
+    /// <summary>
+    /// The card in a window of its own: sized to the card (it scrolls beyond the screen's height), at the top right of the
+    /// main screen the first time, then wherever the player moves it. Shown without taking the focus.
+    /// </summary>
+    private void PlaceWindow()
+    {
+        if (!_hasItem)
+            return;
+        var display = DisplayArea.GetFromWindowId(AppWindow.Id, DisplayAreaFallback.Primary).WorkArea;
+        var scale = Native.GetDpiForWindow(_hwnd) / 96.0;
+        if (Panel.Child is FrameworkElement shown)
+            shown.MaxHeight = Math.Max(200, (display.Height - 2 * Margin * scale) / scale - 40); // room for the title bar
+        Panel.Measure(new Windows.Foundation.Size(Panel.Width, double.PositiveInfinity));
+        var size = Panel.DesiredSize;
+        AppWindow.ResizeClient(new SizeInt32((int)Math.Ceiling(size.Width * scale), (int)Math.Ceiling(size.Height * scale)));
+        if (!_windowPlaced)
+        {
+            var margin = (int)(Margin * scale);
+            AppWindow.Move(new PointInt32(display.X + display.Width - AppWindow.Size.Width - margin, display.Y + margin));
+            _windowPlaced = true;
+        }
+        if (!AppWindow.IsVisible)
+        {
+            AppWindow.Show(false); // the game keeps the focus
+            Telemetry.Track("card_shown");
+        }
+    }
+
+    /// <summary>Sets the window up for where the card shows: over the game, or as an ordinary window (<see cref="AppSettings.ItemCard"/>).</summary>
+    private void ApplyMode()
+    {
+        var window = AppSettings.Shared.ItemCard == CardPlace.Window;
+        if (window == _windowMode)
+            return;
+        if (AppWindow.IsVisible)
+            AppWindow.Hide(); // the taskbar notices the window's new style when it's shown again
+        GiveFocusBack();
+        _windowMode = window;
+        _presenter.IsAlwaysOnTop = !window;
+        _presenter.SetBorderAndTitleBar(window, window);
+        AppWindow.IsShownInSwitchers = window;
+        Native.SetToolWindow(_hwnd, !window);
+        Native.SetActivatable(_hwnd, window);
+        _visibility.Card = window ? 0 : _hwnd; // only the overlay counts as the game while it has the focus
+        (_closed, _offset, _windowPlaced) = (false, null, false);
+    }
+
+    /// <summary>Closes the card's window for good (Deckard is quitting).</summary>
+    public void Shutdown()
+    {
+        _shuttingDown = true;
+        Close();
+    }
+
     // The game reads the mouse as raw input while it's the active window, so a click, drag or wheel on a no-activate card
     // reached the game too. So the card takes the focus while the pointer is over it, and hands it back when the pointer
     // leaves or the card hides. Only window activation: nothing is sent to the game.
     private void OnPointerEntered(object sender, PointerRoutedEventArgs e)
     {
+        if (_windowMode)
+            return; // an ordinary window: a click activates it
         Native.SetActivatable(_hwnd, true);
         Native.SetForegroundWindow(_hwnd);
     }
@@ -232,7 +312,7 @@ public sealed partial class OverlayWindow : Window
     private void OnPointerExited(object sender, PointerRoutedEventArgs e)
     {
         if (_drag is null && !_editing) // while a value is being corrected the card keeps the keyboard
-            GiveFocusBack();
+            GiveFocusBack(); // (nothing to give back in its own window)
     }
 
     /// <summary>
@@ -253,7 +333,7 @@ public sealed partial class OverlayWindow : Window
             Native.SetActivatable(_hwnd, true);
             Native.SetForegroundWindow(_hwnd);
         }
-        else if (Native.GetForegroundWindow() == _hwnd && _game != 0)
+        else if (!_windowMode && Native.GetForegroundWindow() == _hwnd && _game != 0)
             Native.SetForegroundWindow(_game); // still activatable: the pointer is on the card, for the next click
         DispatcherQueue.TryEnqueue(Place); // the card grew or shrank
     }
@@ -267,6 +347,8 @@ public sealed partial class OverlayWindow : Window
 
     private void GiveFocusBack()
     {
+        if (_windowMode)
+            return; // an ordinary window keeps the focus it was given
         if (Native.GetForegroundWindow() == _hwnd && _game != 0)
             Native.SetForegroundWindow(_game);
         Native.SetActivatable(_hwnd, false);
@@ -275,7 +357,7 @@ public sealed partial class OverlayWindow : Window
     // Dragging uses screen coordinates from the cursor, so the window moving under the pointer doesn't feed back.
     private void OnDragStart(object sender, PointerRoutedEventArgs e)
     {
-        if (!Native.TryGetCursor(out var cursor))
+        if (_windowMode || !Native.TryGetCursor(out var cursor)) // its own window moves by its title bar
             return;
         _drag = (cursor, AppWindow.Position);
         Panel.CapturePointer(e.Pointer);
@@ -308,8 +390,8 @@ public sealed partial class OverlayWindow : Window
     /// <summary>The game's tooltips the card is about (a comparison's pair), in game client pixels; null once another tooltip replaced them.</summary>
     public Deckard.Core.Capture.PixelRect? TooltipArea => _hasItem ? _tooltip : null;
 
-    /// <summary>The card is on screen, as Windows has it.</summary>
-    public bool Showing => Native.IsWindowVisible(_hwnd);
+    /// <summary>The card is over the game, as Windows has it (in its own window it covers nothing of the game's).</summary>
+    public bool Showing => !_windowMode && Native.IsWindowVisible(_hwnd);
 
     private void CloseCard()
     {
@@ -663,6 +745,13 @@ public sealed partial class OverlayWindow : Window
             var style = GetWindowLongPtrW(hwnd, GwlExStyle);
             SetWindowLongPtrW(hwnd, GwlExStyle, style | WsExLayered | WsExToolWindow | WsExNoActivate);
             SetLayeredWindowAttributes(hwnd, 0, 255, LwaAlpha); // a layered window stays invisible until its alpha is set
+        }
+
+        /// <summary>A tool window stays out of the taskbar; the card's own window wants to be in it.</summary>
+        public static void SetToolWindow(nint hwnd, bool tool)
+        {
+            var style = GetWindowLongPtrW(hwnd, GwlExStyle);
+            SetWindowLongPtrW(hwnd, GwlExStyle, tool ? style | WsExToolWindow : style & ~WsExToolWindow);
         }
 
         public static void SetActivatable(nint hwnd, bool activatable)

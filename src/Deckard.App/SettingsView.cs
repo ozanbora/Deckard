@@ -21,7 +21,12 @@ public sealed partial class SettingsView : UserControl
 
     public SettingsView()
     {
-        var card = Switch("Show the item card over the game", on => _settings.ShowItemCard = on);
+        var card = new RadioButtons
+        {
+            Header = "Item card",
+            Items = { "Over the game, on the key below", "In a Deckard window (e.g. on a second screen)", "Don't show it" },
+        };
+        card.SelectionChanged += (_, _) => Change(() => _settings.ItemCard = (CardPlace)card.SelectedIndex);
         var key = new ComboBox { Header = "Key", MinWidth = 220 };
         foreach (var (name, _) in AppSettings.OverlayKeys)
             key.Items.Add(name);
@@ -301,8 +306,9 @@ public sealed partial class SettingsView : UserControl
             _refreshing = true;
             key.SelectedIndex = Math.Max(0, AppSettings.OverlayKeys.ToList().FindIndex(k => k.Key == _settings.OverlayKey));
             mode.SelectedIndex = _settings.ToggleOverlay ? 1 : 0;
-            card.IsOn = _settings.ShowItemCard;
-            key.IsEnabled = mode.IsEnabled = reset.IsEnabled = _settings.ShowItemCard; // the key only shows the card
+            card.SelectedIndex = (int)_settings.ItemCard;
+            key.IsEnabled = mode.IsEnabled = _settings.ItemCard == CardPlace.Overlay; // the key only shows the card over the game
+            reset.IsEnabled = _settings.ItemCard != CardPlace.Off;
             tree.IsOn = _settings.HighlightSkillTree;
             notices.IsOn = _settings.ShowTradeNotices;
             duration.SelectedIndex = Math.Max(0, Array.IndexOf(seconds, _settings.NoticeSeconds));

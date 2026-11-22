@@ -83,7 +83,7 @@ public partial class App : Application
             _tray.Dispose();
             _signIn?.Close();
             _feed.Dispose();
-            _overlay.Close();
+            _overlay.Shutdown();
             _toasts.Close();
             _treeOverlay.Dispose();
         };
@@ -159,7 +159,7 @@ public partial class App : Application
     /// </summary>
     private void ShowGameHint()
     {
-        if (TradeClient.Shared.AccountFolder is not { } folder || File.Exists(Path.Combine(folder, "game-hint-seen")) || !AppSettings.Shared.ShowItemCard)
+        if (TradeClient.Shared.AccountFolder is not { } folder || File.Exists(Path.Combine(folder, "game-hint-seen")) || AppSettings.Shared.ItemCard != CardPlace.Overlay)
             return;
         try
         {

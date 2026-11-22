@@ -2,7 +2,7 @@
 
 What changed in each release, for players (also posted on Patreon). Newest first.
 
-## Unreleased
+## 1.0.2
 
 - Settings > Overlay: choose where the item card shows. Over the game on the key (as before), in a Deckard window of
   its own that always shows the last item read (handy on a second screen), or not at all. Deckard reads items either

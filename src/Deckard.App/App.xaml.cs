@@ -159,7 +159,7 @@ public partial class App : Application
     /// </summary>
     private void ShowGameHint()
     {
-        if (TradeClient.Shared.AccountFolder is not { } folder || File.Exists(Path.Combine(folder, "game-hint-seen")))
+        if (TradeClient.Shared.AccountFolder is not { } folder || File.Exists(Path.Combine(folder, "game-hint-seen")) || !AppSettings.Shared.ShowItemCard)
             return;
         try
         {

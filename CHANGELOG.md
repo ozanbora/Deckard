@@ -2,6 +2,11 @@
 
 What changed in each release, for players (also posted on Patreon). Newest first.
 
+## Unreleased
+
+- Settings > Overlay can turn the item card off. Deckard still reads items (runes, worn gear, the stash), it just
+  shows no card over the game.
+
 ## 1.0.1
 
 - The sign-in window and About link the Terms of Use and the Privacy Policy on synica.nl.

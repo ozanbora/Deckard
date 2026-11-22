@@ -50,6 +50,9 @@ public sealed class AppSettings
     /// <summary>Let other traders see that the player is in the game (off by default: presence is personal).</summary>
     public bool ShowOnline { get; set; }
 
+    /// <summary>Show the item card over the game. Off, Deckard still reads items (runes, worn gear, the stash), just shows no card.</summary>
+    public bool ShowItemCard { get; set; } = true;
+
     /// <summary>Raised on the UI thread after the Settings page changes something.</summary>
     public event Action? Changed;
 
@@ -61,7 +64,7 @@ public sealed class AppSettings
     // What settings.json holds; CardPositionReset is an action, not a setting.
     // Settings added later are nullable: a file from before them reads as null and gets the default, not false.
     private sealed record Stored(int OverlayKey, bool ToggleOverlay, bool HighlightSkillTree, bool ShowTradeNotices, int NoticeSeconds,
-        int DefaultRealm, bool ShareLocation, bool? CloseToTray = null, bool? ShowHideHotkey = null, bool? ShowOnline = null);
+        int DefaultRealm, bool ShareLocation, bool? CloseToTray = null, bool? ShowHideHotkey = null, bool? ShowOnline = null, bool? ShowItemCard = null);
 
     private static string? File => TradeClient.Shared.AccountFolder is { } folder ? Path.Combine(folder, "settings.json") : null;
     private bool _loading;
@@ -113,6 +116,7 @@ public sealed class AppSettings
         CloseToTray = stored?.CloseToTray ?? defaults.CloseToTray;
         ShowHideHotkey = stored?.ShowHideHotkey ?? defaults.ShowHideHotkey;
         ShowOnline = stored?.ShowOnline ?? defaults.ShowOnline;
+        ShowItemCard = stored?.ShowItemCard ?? defaults.ShowItemCard;
         _loading = true;
         try
         {
@@ -133,7 +137,7 @@ public sealed class AppSettings
             Directory.CreateDirectory(Path.GetDirectoryName(file)!);
             System.IO.File.WriteAllText(file, System.Text.Json.JsonSerializer.Serialize(
                 new Stored(OverlayKey, ToggleOverlay, HighlightSkillTree, ShowTradeNotices, NoticeSeconds, DefaultRealm, ShareLocation,
-                    CloseToTray, ShowHideHotkey, ShowOnline)));
+                    CloseToTray, ShowHideHotkey, ShowOnline, ShowItemCard)));
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {

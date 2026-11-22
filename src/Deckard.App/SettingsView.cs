@@ -21,6 +21,7 @@ public sealed partial class SettingsView : UserControl
 
     public SettingsView()
     {
+        var card = Switch("Show the item card over the game", on => _settings.ShowItemCard = on);
         var key = new ComboBox { Header = "Key", MinWidth = 220 };
         foreach (var (name, _) in AppSettings.OverlayKeys)
             key.Items.Add(name);
@@ -256,6 +257,7 @@ public sealed partial class SettingsView : UserControl
 
         var page = new StackPanel { Spacing = 14, MaxWidth = 720, HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(24, 16, 24, 24) };
         page.Children.Add(Heading("Overlay"));
+        page.Children.Add(card);
         page.Children.Add(key);
         page.Children.Add(mode);
         page.Children.Add(Note("Deckard only reads whether the key is down; it never sends keys to the game. Alt is also the game's own key for advanced tooltips."));
@@ -299,6 +301,8 @@ public sealed partial class SettingsView : UserControl
             _refreshing = true;
             key.SelectedIndex = Math.Max(0, AppSettings.OverlayKeys.ToList().FindIndex(k => k.Key == _settings.OverlayKey));
             mode.SelectedIndex = _settings.ToggleOverlay ? 1 : 0;
+            card.IsOn = _settings.ShowItemCard;
+            key.IsEnabled = mode.IsEnabled = reset.IsEnabled = _settings.ShowItemCard; // the key only shows the card
             tree.IsOn = _settings.HighlightSkillTree;
             notices.IsOn = _settings.ShowTradeNotices;
             duration.SelectedIndex = Math.Max(0, Array.IndexOf(seconds, _settings.NoticeSeconds));

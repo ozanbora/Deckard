@@ -187,7 +187,7 @@ public sealed partial class OverlayWindow : Window
     {
         if (_drag is not null)
             return;
-        if (!_visibility.IsVisible || _closed || _overBuildScreen)
+        if (!_visibility.IsVisible || _closed || _overBuildScreen || !AppSettings.Shared.ShowItemCard)
         {
             if (_editing)
             {

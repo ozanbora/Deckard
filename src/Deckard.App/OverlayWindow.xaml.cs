@@ -54,7 +54,7 @@ public sealed partial class OverlayWindow : Window
         _presenter.IsMaximizable = false;
         _presenter.IsMinimizable = false;
         AppWindow.SetPresenter(_presenter);
-        Title = "Deckard item card";
+        AppWindow.Title = Title = "Deckard item card"; // the title bar of its own window shows it
 
         _hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
         Native.MakeOverlay(_hwnd);
@@ -288,7 +288,7 @@ public sealed partial class OverlayWindow : Window
         Native.SetToolWindow(_hwnd, !window);
         Native.SetActivatable(_hwnd, window);
         _visibility.Card = window ? 0 : _hwnd; // only the overlay counts as the game while it has the focus
-        (_closed, _offset, _windowPlaced) = (false, null, false);
+        (_closed, _offset) = (false, null); // the window keeps the place the player gave it
     }
 
     /// <summary>Closes the card's window for good (Deckard is quitting).</summary>

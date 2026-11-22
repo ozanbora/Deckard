@@ -997,7 +997,7 @@ public sealed partial class TradeView : UserControl
         _queuePanel.Children.Add(new TextBlock { Text = _queue.Count > 0 ? $"Queued to list ({_queue.Count})" : "Queued to list", Style = (Style)Application.Current.Resources["SubtitleTextBlockStyle"] });
         if (_queue.Count == 0)
         {
-            _queuePanel.Children.Add(new TextBlock { Text = "Press Queue on the item card over the game to gather items here, then price and list them at once.", Opacity = 0.7, TextWrapping = TextWrapping.Wrap, FontSize = 13 });
+            _queuePanel.Children.Add(new TextBlock { Text = "Press Queue on the item card to gather items here, then price and list them at once.", Opacity = 0.7, TextWrapping = TextWrapping.Wrap, FontSize = 13 });
             return;
         }
         foreach (var queued in _queue)
